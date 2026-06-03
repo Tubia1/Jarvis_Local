@@ -5,7 +5,7 @@ import subprocess
 print ("Loading  whisper model...")
 model = whisper.load_model("base")
 print ("Model loaded.")
-result = model.transcribe("../audios/vs_code.m4a", language="spanish") 
+result = model.transcribe("../audios/live.wav", language="spanish") 
 text = result["text"]
 print (text)
 prompt = f"""
