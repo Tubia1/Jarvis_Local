@@ -1,0 +1,9 @@
+venv/
+**pycache**/
+*.pyc
+
+audios/live.wav
+
+.env
+
+.whisper_cache/
