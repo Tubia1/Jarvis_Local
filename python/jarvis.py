@@ -1,4 +1,4 @@
-import json
+﻿import json
 import subprocess
 import requests
 import whisper
@@ -14,7 +14,6 @@ SAMPLE_RATE = 44100
 
 
 def grabar_audio():
-
     print("Grabando... hablá ahora")
 
     audio = sd.rec(
@@ -24,21 +23,15 @@ def grabar_audio():
     )
 
     sd.wait()
-
     write(AUDIO_PATH, SAMPLE_RATE, audio)
 
     print("Audio guardado.")
 
 
 def transcribir_audio(model):
-
     print("Transcribiendo audio...")
 
-    result = model.transcribe(
-        AUDIO_PATH,
-        language="spanish"
-    )
-
+    result = model.transcribe(AUDIO_PATH, language="spanish")
     text = result["text"]
 
     print("Texto detectado:")
@@ -48,15 +41,12 @@ def transcribir_audio(model):
 
 
 def obtener_respuesta(text):
- 
-
-
     prompt = f"""
 Sos Jarvis, un asistente de voz local.
 
-Tu tarea es decidir si el usuario quiere ejecutar una acción o conversar.
+Tu tarea es decidir si el usuario quiere ejecutar una accion o conversar.
 
-Respondé SOLO con JSON válido.
+Responde SOLO con JSON valido.
 No uses markdown.
 No uses ```json.
 
@@ -72,20 +62,29 @@ Acciones permitidas:
 - open_explorer
 - open_terminal
 - open_smartlot
+- git_status
+- prepare_smartlot
 - exit
 - unknown
 
-Reglas:
-- Si el usuario pide abrir un programa, usá type "action".
-- Si el usuario pregunta algo o quiere conversar, usá type "chat".
-- Si el usuario menciona "Visual Studio Code", "VS Code" o "Code", la acción es "open_vscode".
-- Si menciona "terminal", "consola" o "PowerShell", la acción es "open_terminal".
-- Si dice "salir", "cerrar", "terminar" o "apagar Jarvis", la acción es "exit".
+Reglas importantes:
+- Si el usuario pide abrir, iniciar, arrancar, preparar o ejecutar algo, usa type "action".
+- Si el usuario pregunta algo o quiere conversar, usa type "chat".
+- Si el usuario menciona "Visual Studio Code", "VS Code" o "Code", la accion es "open_vscode".
+- Si menciona "terminal", "consola" o "PowerShell", la accion es "open_terminal".
+- Si el usuario pide "git status", "estado de git" o "ver cambios", la accion es "git_status".
+- Si el usuario dice "prepara SmartLot", "preparar SmartLot", "inicia SmartLot", "iniciar SmartLot", "arranca SmartLot", "arrancar SmartLot", "quiero trabajar en SmartLot", "prepara el proyecto" o "arranca el proyecto", la accion es "prepare_smartlot".
+- Si el usuario dice "salir", "cerrar", "terminar" o "apagar Jarvis", la accion es "exit".
 
 Texto del usuario:
 {text}
 
-Ejemplos válidos:
+Ejemplos validos:
+
+{{
+  "type": "action",
+  "action": "prepare_smartlot"
+}}
 
 {{
   "type": "action",
@@ -94,10 +93,9 @@ Ejemplos válidos:
 
 {{
   "type": "chat",
-  "response": "Estoy funcionando correctamente. ¿En qué puedo ayudarte?"
+  "response": "Estoy funcionando correctamente. En que puedo ayudarte?"
 }}
 """
-
 
     print("Enviando texto a Ollama...")
 
@@ -121,10 +119,10 @@ Ejemplos válidos:
 
     print("Respuesta de Ollama:")
     print(ollama_response)
-   
-    action_data = json.loads(ollama_response)
-    return action_data["action"].lower()
-    
+
+    return json.loads(ollama_response)
+
+
 def hablar(texto):
     engine = pyttsx3.init()
     engine.setProperty("volume", 1.0)
@@ -132,8 +130,8 @@ def hablar(texto):
     engine.say(texto)
     engine.runAndWait()
 
-def procesar_respuesta(respuesta):
 
+def procesar_respuesta(respuesta):
     tipo = respuesta.get("type")
 
     if tipo == "action":
@@ -148,15 +146,14 @@ def procesar_respuesta(respuesta):
 
     else:
         print("Respuesta desconocida.")
-        hablar("No entendí qué tengo que hacer.")
+        hablar("No entendi que tengo que hacer.")
 
 
-def ejecutar_accion(action): 
-
+def ejecutar_accion(action):
     if action == "open_vscode":
         print("Abriendo Visual Studio Code...")
         hablar("Abriendo Visual Studio Code")
-        subprocess.Popen("code", shell=True) 
+        subprocess.Popen("code", shell=True)
 
     elif action == "open_notepad":
         print("Abriendo Notepad...")
@@ -171,14 +168,17 @@ def ejecutar_accion(action):
     elif action == "open_chrome":
         print("Abriendo Chrome...")
         hablar("Abriendo Chrome")
-        subprocess.Popen(
-            r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-        )
+        subprocess.Popen(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
 
     elif action == "open_explorer":
         print("Abriendo Explorador...")
         hablar("Abriendo Explorador de archivos")
         subprocess.Popen("explorer.exe")
+
+    elif action == "open_terminal":
+        print("Abriendo terminal...")
+        hablar("Abriendo terminal")
+        subprocess.Popen("powershell.exe")
 
     elif action == "open_smartlot":
         print("Abriendo SmartLot...")
@@ -187,18 +187,52 @@ def ejecutar_accion(action):
             ["code", r"C:\Users\Tobias\Downloads\SmartLot"],
             shell=True
         )
-    elif action == "open_terminal":
-           print("Abriendo terminal...")
-           hablar("Abriendo terminal")
-           subprocess.Popen("powershell.exe")
+
+    elif action == "git_status":
+        print("Consultando estado de Git...")
+        hablar("Consultando estado de Git")
+
+        resultado = subprocess.run(
+            ["git", "status"],
+            cwd=r"C:\Users\Tobias\Downloads\Jarvis_Local",
+            capture_output=True,
+            text=True,
+            shell=True
+        )
+
+        print(resultado.stdout)
+        hablar("Ya mostre el estado de Git en la terminal")
+
+    elif action == "prepare_smartlot":
+        print("Preparando SmartLot...")
+        hablar("Preparando SmartLot")
+
+        subprocess.Popen(
+            ["code", r"C:\Users\Tobias\Downloads\SmartLot"],
+            shell=True
+        )
+
+        subprocess.Popen(
+            [
+                "powershell.exe",
+                "-NoExit",
+                "-Command",
+                r"cd C:\Users\Tobias\Downloads\SmartLot"
+            ]
+        )
+
+        hablar("SmartLot preparado")
+
     elif action == "exit":
         print("Apagando Jarvis...")
         hablar("Apagando Jarvis")
         exit()
 
     else:
-        print("Acción desconocida.")
-        hablar("No entendí la acción")
+        print("Accion desconocida.")
+        hablar("No entendi la accion")
+
+
 print("Cargando Whisper...")
 model = whisper.load_model("base")
 
@@ -210,6 +244,6 @@ while True:
         text = transcribir_audio(model)
         respuesta = obtener_respuesta(text)
         procesar_respuesta(respuesta)
+
     except Exception as e:
         print(f"Error: {e}")
-
